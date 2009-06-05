@@ -230,13 +230,17 @@ end t_right
 --sourceTextをdelimiterでリストに変換する
 --split("1,2,3,4", ",")
 --	結果：{"1", "2", "3", "4"}
+--AppleScript2.0では、«constant conszkhk»などの拡張属性はサポートしない。
+--http://www.seuzo.jp/st/Other/AS2.0.html
 on split(sourceText, delimiter)
+	--considering «constant conszkhk»
 	if sourceText = "" then return {}
 	set oldDelimiters to AppleScript's text item delimiters
 	set AppleScript's text item delimiters to {delimiter}
 	set theList to text items of sourceText
 	set AppleScript's text item delimiters to oldDelimiters
 	return theList
+	--end considering
 end split
 
 --sourceTextをdelimiter_listで区切って、リストに変換する
@@ -262,12 +266,16 @@ end every_split_with_delimiter
 --	結果："1,2,3,4"
 --join({{1, 2}, {3, 4}}, ",")
 --	結果："1,2,3,4"
+--AppleScript2.0では、«constant conszkhk»などの拡張属性はサポートしない。
+--http://www.seuzo.jp/st/Other/AS2.0.html
 on join(sourceList, delimiter)
+	--considering «constant conszkhk»
 	set oldDelimiters to AppleScript's text item delimiters
 	set AppleScript's text item delimiters to {delimiter}
 	set theText to sourceList as text
 	set AppleScript's text item delimiters to oldDelimiters
 	return theText
+	--end considering
 end join
 
 --sourceText中の全てのtext1をtext2に置き換える
@@ -288,7 +296,15 @@ end replace
 --list1とlist2の関係が同じ長さの文字列でもOK
 --every_replace("abcdefg", "bceg", "BCEG")
 --	結果："aBCdEfG"
-every_replace("abc", "b", "")
+--
+--注意!! 全角と半角の区別なし
+--considering «constant conszkhk»
+--every_replace("abc", {"ｂ"}, {"＿"})
+--end considering
+--	結果："a＿c"
+--AppleScript2.0では、«constant conszkhk»などの拡張属性はサポートしない。
+--http://www.seuzo.jp/st/Other/AS2.0.html
+--"A" is in "Ａ"で比較すれば、全角と半角が区別される。
 on every_replace(sourceText, list1, list2)
 	if list2 = "" then set list2 to {list2}
 	repeat with i from 1 to list1's number
@@ -399,7 +415,10 @@ end offset_in2
 
 --look_up({{"apple", 100}, {"みかん", 50}, {"オレンジ", 150}}, "みかん") --結果: {50}
 --look_up({{"apple", 100}, {"みかん", 50}, {"オレンジ", 150}}, "いちご") --結果: ""
-look_up({{"apple", 100}, {"みかん", 50}, {"オレンジ", 150}}, "") --結果: ""
+--look_up({{"apple", 100}, {"みかん", 50}, {"オレンジ", 150}}, "") --結果: ""
+--全角半角が区別される（ A is in B で比較しているため）
+--look_up({{"apple", 100}, {"みかん", 50}, {"オレンジ", 150}}, "ａｐｐｌｅ") --結果: ""
+--look_up({{"apple", 100}, {"みかん", 50}, {"オレンジ", 150}}, "apple") --結果: "{100}"
 on look_up(src_list, a_key)
 	if a_key = "" then return ""
 	--if a_key is in {"", "\n", "\r", "\t"} then return ""
