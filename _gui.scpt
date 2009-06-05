@@ -14,7 +14,7 @@ GUIライブラリ
 --初期化処理（Quicksilverからの起動なら、ひと呼吸置いて実行する）
 on init()
 	if is_from_quicksilver() then
-		delay 0.2
+		delay 0.3
 	end if
 end init
 
@@ -191,7 +191,7 @@ on press_key(app_name, normal_key, modifier_key)
 			else
 				keystroke normal_key using modifier_key
 			end if
-			--delay 0.1
+			delay 0.1
 		end tell
 	end tell
 end press_key
@@ -384,4 +384,3 @@ on click_menu3(app_name, menu_name1, menu_name2, menu_name3)
 	end tell
 end click_menu3
 *)
-

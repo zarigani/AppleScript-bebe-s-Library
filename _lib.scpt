@@ -10,21 +10,34 @@ LIBライブラリ
 		AppleScript 2.0.1
 		Script Editor 2.2.1 (100.1)
 *)
+property HAN_KANA : "ｶﾞｷﾞｸﾞｹﾞｺﾞｻﾞｼﾞｽﾞｾﾞｿﾞﾀﾞﾁﾞﾂﾞﾃﾞﾄﾞﾊﾞﾋﾞﾌﾞﾍﾞﾎﾞｳﾞﾊﾟﾋﾟﾌﾟﾍﾟﾎﾟ､｡¥｢｣ｧｨｩｪｫｬｭｮｯｰ-ｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄﾅﾆﾇﾈﾉﾊﾋﾌﾍﾎﾏﾐﾑﾒﾓﾔﾕﾖﾗﾘﾙﾚﾛﾜｦﾝ" --半角の長音記号ｰとマイナス-は、どちらも全角の長音記号ーに変換する
+property ZEN_KANA : "ガギグゲゴザジズゼゾダヂヅデドバビブベボヴパピプペポ、。￥「」ァィゥェォャュョッーーアイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン"
+property ZENGIN_SUJI : "0123456789"
+property ZENGIN_EIJI : "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+property ZENGIN_KANA : "ｶﾞｷﾞｸﾞｹﾞｺﾞｻﾞｼﾞｽﾞｾﾞｿﾞﾀﾞﾁﾞﾂﾞﾃﾞﾄﾞﾊﾞﾋﾞﾌﾞﾍﾞﾎﾞｳﾞﾊﾟﾋﾟﾌﾟﾍﾟﾎﾟｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄﾅﾆﾇﾈﾉﾊﾋﾌﾍﾎﾏﾐﾑﾒﾓﾔﾕﾖﾗﾘﾙﾚﾛﾜｦﾝ"
+property ZENGIN_KIGO : "¥｢｣,.()-/"
 
 --rubyコードを実行して結果を返す
 --do_ruby_script({"require 'uri'", "URI.escape(%q|" & "tell application \"System Events\" --ショートカット操作をする限り" & "|)"})
+--バックスラッシュのみ,エスケープ\\が必要、それ以外はRubyコードの書き方と同じ
 on do_ruby_script(ruby_code)
 	set ruby_code to ruby_code as list
 	set last_code to ruby_code's last item
+	set puts_last_code to "puts(" & last_code & ")"
 	if (count of ruby_code) ≥ 2 then
 		set pre_code to join(ruby_code's items 1 thru -2, ";") & ";"
 	else
 		set pre_code to ""
 	end if
-	set shell_code to "ruby -e \"" & pre_code & "puts(" & last_code & ")\""
+	set shell_code to "ruby -e " & quoted form of (pre_code & puts_last_code)
 	log shell_code
 	do shell script shell_code
 end do_ruby_script
+
+--rubyコードを require 'jcode'; $KCODE='u'; な日本語環境で実行して結果を返す
+on do_ruby_jcode_u(ruby_code)
+	do_ruby_script({"require 'jcode'", "$KCODE='u'"} & ruby_code)
+end do_ruby_jcode_u
 
 --URIエンコードして結果を返す
 --uri_escape("set lib to load script file ((path to scripts folder as text) & \"_lib.scpt\")")
@@ -39,12 +52,24 @@ on uri_escape(str)
 	replace(result, "__BSL__", "%5C")
 end uri_escape
 
+--HTMLエスケープして結果を返す
+--html_escape(the clipboard)
+on html_escape(str)
+	set FIND_TEXTS to {"\t", "&", "<", ">", "¬"} --"\t" = tab
+	set PUTS_TEXTS to {"  ", "&amp;", "&lt;", "&gt;", "&not;"}
+	every_replace(str, FIND_TEXTS, PUTS_TEXTS)
+end html_escape
+
 --正規表現の比較をして真偽値を返す
---re("/\\d/", "abc1")
---re("/^[\\+\\-]?[\\d\\.\\,]+$/", "+123,456.789")
+--reg("/\\d/", "abc1")
+--reg("/^[\\+\\-]?[\\d\\.\\,]+$/", "+123,456.789")
+--バックスラッシュのみ,エスケープ\\が必要、それ以外はRubyコードの書き方と同じ
 on reg(reg_text, str)
 	try
-		do_ruby_script(reg_text & " =~ '" & str & "'") as integer
+		--do_ruby_script(reg_text & " =~ '" & str & "'") as integer
+		--日本語対応に変更した
+		--do_ruby_script({"require 'jcode'", "$KCODE='u'", reg_text & " =~ " & quoted form of str}) as integer
+		do_ruby_jcode_u(reg_text & " =~ " & quoted form of str) as integer
 		true
 	on error
 		false
@@ -202,26 +227,44 @@ on t_right(str, width, padding)
 	t_repeat(padding, width - (count str)) & str
 end t_right
 
---sourceTextをseparatorでリストに変換する
+--sourceTextをdelimiterでリストに変換する
 --split("1,2,3,4", ",")
 --	結果：{"1", "2", "3", "4"}
-on split(sourceText, separator)
+on split(sourceText, delimiter)
 	if sourceText = "" then return {}
 	set oldDelimiters to AppleScript's text item delimiters
-	set AppleScript's text item delimiters to {separator}
+	set AppleScript's text item delimiters to {delimiter}
 	set theList to text items of sourceText
 	set AppleScript's text item delimiters to oldDelimiters
 	return theList
 end split
 
---sourceListをseparatorで区切ったテキストに変換する
+--sourceTextをdelimiter_listで区切って、リストに変換する
+on every_split(sourceText, delimiter_list)
+	set original_delimiter to "__|__"
+	every_replace(sourceText, delimiter_list, {original_delimiter})
+	split(result, original_delimiter)
+end every_split
+
+--sourceTextをdelimiter_listで区切って、リストに変換する
+--区切り文字も含んだリストを生成する
+--区切り文字と次の文字の境界で区切る
+on every_split_with_delimiter(sourceText, delimiter_list)
+	set original_delimiter to "__|__"
+	repeat with a_delimiter in delimiter_list
+		set sourceText to replace(sourceText, a_delimiter, a_delimiter & original_delimiter)
+	end repeat
+	split(result, original_delimiter)
+end every_split_with_delimiter
+
+--sourceListをdelimiterで区切ったテキストに変換する
 --join({"1", "2", "3", "4"}, ",")
 --	結果："1,2,3,4"
 --join({{1, 2}, {3, 4}}, ",")
 --	結果："1,2,3,4"
-on join(sourceList, separator)
+on join(sourceList, delimiter)
 	set oldDelimiters to AppleScript's text item delimiters
-	set AppleScript's text item delimiters to {separator}
+	set AppleScript's text item delimiters to {delimiter}
 	set theText to sourceList as text
 	set AppleScript's text item delimiters to oldDelimiters
 	return theText
@@ -237,9 +280,23 @@ end replace
 --sourceText中の全てのlist1をlist2に置き換える
 --every_replace("abcdefg", {"bc", "e", "g"}, {"_bc_", "_e_", "_g_"})
 --	結果："a_bc_d_e_f_g_"
+--
+--list1とlist2の関係が多対1でもOK
+--every_replace("abcdefg", {"bc", "e", "g"}, {"_X_"})
+--	結果："a_X_d_X_f_X_"
+--
+--list1とlist2の関係が同じ長さの文字列でもOK
+--every_replace("abcdefg", "bceg", "BCEG")
+--	結果："aBCdEfG"
+every_replace("abc", "b", "")
 on every_replace(sourceText, list1, list2)
+	if list2 = "" then set list2 to {list2}
 	repeat with i from 1 to list1's number
-		set sourceText to replace(sourceText, list1's item i, list2's item i)
+		if list2's number = 1 then
+			set sourceText to replace(sourceText, list1's item i, list2's item 1)
+		else
+			set sourceText to replace(sourceText, list1's item i, list2's item i)
+		end if
 	end repeat
 end every_replace
 
@@ -313,7 +370,7 @@ repeat 100000 times--10万回で5秒
 end repeat
 (current date) - a_time--5
 *)
---offset_in({"ab", "cde", 1, 108, {}}, 108)
+--offset_in({"ab", "cde", 1, 108, {}}, 108) --結果: 4
 on offset_in(src_list, find_item)
 	set i to 0
 	repeat with a_item in src_list
@@ -339,6 +396,18 @@ on offset_in2(src_list, find_item)
 	(src_text's items 1 thru i as text) & "_"
 	count split(result, delimiter)
 end offset_in2
+
+--look_up({{"apple", 100}, {"みかん", 50}, {"オレンジ", 150}}, "みかん") --結果: {50}
+--look_up({{"apple", 100}, {"みかん", 50}, {"オレンジ", 150}}, "いちご") --結果: ""
+look_up({{"apple", 100}, {"みかん", 50}, {"オレンジ", 150}}, "") --結果: ""
+on look_up(src_list, a_key)
+	if a_key = "" then return ""
+	--if a_key is in {"", "\n", "\r", "\t"} then return ""
+	repeat with sub_list in src_list
+		if a_key is in sub_list's item 1 then return sub_list's items 2 thru -1
+	end repeat
+	""
+end look_up
 
 --max({3, 2, 5, 1, 4})
 on max(a_list)
@@ -388,3 +457,109 @@ on offset_of_min(a_list)
 	min_i
 end offset_of_min
 
+--先頭を削除したリストを返す
+--{1, 2, 3, 4}'s rest --{2,3,4}
+
+--末尾を削除したリストを返す
+--{1, 2, 3, 4}'s items 1 thru -2 --{1,2,3}
+
+--指定位置のアイテムを削除したリストを返す
+--delete_item({1, 2, 3, 4}, -3) --{1,3,4}
+on delete_item(a_list, n)
+	{}
+	try
+		result & a_list's items 1 thru (n - 1)
+	on error
+		result
+	end try
+	try
+		result & a_list's items (n + 1) thru -1
+	on error
+		result
+	end try
+end delete_item
+
+--リストから指定したアイテムを取り除く
+--reject_item({"a", "b", "", "c"}, "") -- {"a", "b", "c"}
+--reject_item({"a", "b", "", "c"}, {"", "b"}) -- {"a", "c"}
+on reject_item(a_list, condition_list)
+	set res to {}
+	repeat with a_item in a_list
+		if a_item's contents is not in condition_list then set res's end to a_item's contents
+	end repeat
+	res
+end reject_item
+
+--先頭に追加してリストを返す
+(*
+set t to current date
+set a_list to {1, 2, 3}
+repeat 10000 times
+	--set a_list to 0 & a_list --14秒
+	--set a_list's beginning to 0 --1秒（高速）
+end repeat
+(current date) - t
+--a_list --{0,0,0,...,1,2,3}
+*)
+
+--末尾に追加してリストを返す
+(*
+set t to current date
+set a_list to {1, 2, 3}
+repeat 10000 times
+	--set a_list to a_list & 4 --24秒
+	--set a_list's end to 4 --12秒（高速）
+end repeat
+(current date) - t
+--a_list --{1,2,3,4,4,4,...,4}
+*)
+
+--リストの任意の位置のアイテムを上書きする
+(*
+set a_list to {1, 2, 3}
+set a_list's item 2 to 100
+a_list --{1, 100, 3}
+set a_list's item 2 to {100}
+a_list --{1, {100}, 3}
+*)
+
+--指定した位置にアイテムを追加してリストを返す
+(*
+set a_list to {1, 2, 3}
+insert_left(a_list, 2, {"b1", "b2"}) --{1, "b1", "b2", 2, 3}
+insert_left(a_list, 2, {{"b1", "b2"}}) --{1, {"b1", "b2"}, 2, 3}
+*)
+on insert_left(a_list, n, add_item)
+	a_list's items 1 thru (n - 1) & add_item & a_list's items n thru -1
+end insert_left
+
+--全角・半角を無視する
+--«»--option-\・shift-option-\
+--ask_number("数字を入力してください。")
+on ask_number(msg)
+	repeat
+		set res_text to text returned of (display dialog msg default answer "" with icon note)
+		try
+			ignoring «constant conszkhk»
+				set num to res_text as number
+			end ignoring
+			exit repeat
+		end try
+	end repeat
+	num
+end ask_number
+
+--growlまたはdisplay dialogでメッセージを表示する。
+on message(title, msg)
+	try
+		do shell script "/usr/local/bin/growlnotify " & title & " -m " & quoted form of msg
+	on error
+		activate
+		display alert msg giving up after 1
+	end try
+end message
+
+--半角を全角に変換する
+on kana_han2zen(str)
+	every_replace(str, HAN_KANA, ZEN_KANA)
+end kana_han2zen
