@@ -184,6 +184,7 @@ on press_key(app_name, normal_key, modifier_key)
 			if "AppleScript Runner" is in my every_process() or ¬
 				frontmost is false then
 				set frontmost to true
+				delay 0.5
 			end if
 			
 			if my is_number(normal_key) then
@@ -191,7 +192,7 @@ on press_key(app_name, normal_key, modifier_key)
 			else
 				keystroke normal_key using modifier_key
 			end if
-			delay 0.1
+			delay 0.5
 		end tell
 	end tell
 end press_key
@@ -217,15 +218,36 @@ on every_process()
 	end tell
 end every_process
 
+on app_list()
+end app_list
+
 --最前面のアプリケーション名（拡張子なし）を取得する
 on frontmost_app()
 	--short name of (info for (path to frontmost application)) -- short name属性がない場合、missing valueが返ってくる
 	--name of (path to frontmost application) --拡張子が付属してしまう。"Script Editor.app"
+	tell application "Finder"
+		set app_name to name of (path to frontmost application)
+	end tell
+	split(app_name, ".")'s item 1 as text
+end frontmost_app
+
+--最前面のプロセス名（拡張子なし）を取得する
+frontmost_process("Script Editor")
+--split("Script Editor.app", ".")'s items 1 thru -2 as text
+on frontmost_process()
+	--short name of (info for (path to frontmost application)) -- short name属性がない場合、missing valueが返ってくる
+	--name of (path to frontmost application) --拡張子が付属してしまう。"Script Editor.app"
 	tell application "System Events"
+		(*
 		set name_list to processes's name whose frontmost is true
 		name_list's first item
+		*)
+		--Firefox→firefox-binになってしまうため...
+		processes's file whose frontmost is true
+		(result's first item)'s name as text
+		set app_name to my split(result, ".")'s item 1
 	end tell
-end frontmost_app
+end frontmost_process
 
 --1番上の書類ウィンドウを取得する（1番上の書類ウィンドウが存在しない場合、書類ウィンドウに限らず一番上のウィンドウを取得する）
 on front_window()
