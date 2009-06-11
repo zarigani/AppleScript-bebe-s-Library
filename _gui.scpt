@@ -10,13 +10,23 @@ GUIライブラリ
 		AppleScript 2.0.1
 		Script Editor 2.2.1 (100.1)
 *)
+property interval : 0.3
 
 --初期化処理（Quicksilverからの起動なら、ひと呼吸置いて実行する）
 on init()
+	set interval to 0.3
 	if is_from_quicksilver() then
-		delay 0.3
+		delay interval
 	end if
 end init
+
+--ショートカットキーの操作間隔を秒で指定して、初期化処理する
+on init_with_interval(a_second)
+	set interval to a_second
+	if is_from_quicksilver() then
+		delay interval
+	end if
+end init_with_interval
 
 --GUIスクリプティングが無効なら、有効にすることを勧めるメッセージを出力する
 on check()
@@ -184,7 +194,7 @@ on press_key(app_name, normal_key, modifier_key)
 			if "AppleScript Runner" is in my every_process() or ¬
 				frontmost is false then
 				set frontmost to true
-				delay 0.5
+				delay interval
 			end if
 			
 			if my is_number(normal_key) then
@@ -192,7 +202,7 @@ on press_key(app_name, normal_key, modifier_key)
 			else
 				keystroke normal_key using modifier_key
 			end if
-			delay 0.5
+			delay interval
 		end tell
 	end tell
 end press_key
@@ -210,6 +220,7 @@ on is_from_quicksilver()
 end is_from_quicksilver
 
 --起動中のアプリケーション名をリストで取得する
+--every_process()
 on every_process()
 	tell application "System Events"
 		--name of every process
@@ -232,7 +243,7 @@ on frontmost_app()
 end frontmost_app
 
 --最前面のプロセス名（拡張子なし）を取得する
-frontmost_process("Script Editor")
+--frontmost_process()
 --split("Script Editor.app", ".")'s items 1 thru -2 as text
 on frontmost_process()
 	--short name of (info for (path to frontmost application)) -- short name属性がない場合、missing valueが返ってくる
