@@ -10,13 +10,13 @@ GUIライブラリ
 		AppleScript 2.0.1
 		Script Editor 2.2.1 (100.1)
 *)
-property interval : 0.3
+property interval : 0.1
 
 --初期化処理（Quicksilverからの起動なら、ひと呼吸置いて実行する）
 on init()
-	set interval to 0.3
+	set interval to 0.1
 	if is_from_quicksilver() then
-		delay interval
+		delay 0.3
 	end if
 end init
 
@@ -24,7 +24,7 @@ end init
 on init_with_interval(a_second)
 	set interval to a_second
 	if is_from_quicksilver() then
-		delay interval
+		delay 0.3
 	end if
 end init_with_interval
 
@@ -179,6 +179,12 @@ on shortcut(app_name, key_text)
 	press_key(app_name, last_key, modifier_key)
 end shortcut
 
+--shortcut(app_name, key_text)の別名、エイリアス
+--tell application "System Events"ブロック内で、shortcutが予約語であることに気付いた為
+on app_shortcut(app_name, key_text)
+	shortcut(app_name, key_text)
+end app_shortcut
+
 --キー操作を実行する
 --利用例：
 --	press_key("1", command down)
@@ -194,7 +200,7 @@ on press_key(app_name, normal_key, modifier_key)
 			if "AppleScript Runner" is in my every_process() or ¬
 				frontmost is false then
 				set frontmost to true
-				delay interval
+				--delay interval
 			end if
 			
 			if my is_number(normal_key) then
@@ -278,12 +284,17 @@ end front_window
 
 --このライブラリが依存する_lib.scptのコピー
 on do_ruby_script(ruby_code)
-	set shell_code to "ruby -e \"puts(" & ruby_code & ")\""
+	set shell_code to "ruby -e " & quoted form of ("puts(" & ruby_code & ")")
 	do shell script shell_code
 end do_ruby_script
 
+--downcase("→")
 on downcase(str)
+	--if str is in "ABCDEFGHIJKLMNOPQRSTUVWXYZ" then
 	do_ruby_script("'" & str & "'.downcase")
+	--else
+	--	str
+	--end if
 end downcase
 
 on split(sourceText, separator)

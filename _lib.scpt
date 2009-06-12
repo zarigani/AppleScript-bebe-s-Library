@@ -334,11 +334,13 @@ on replace_first(sourceText, text1, text2)
 end replace_first
 
 --大文字に変換
+--upcase("`abc")
 on upcase(aText)
 	do_ruby_script("'" & aText & "'.upcase")
 end upcase
 
 --小文字に変換
+--downcase("`ABC")
 on downcase(aText)
 	do_ruby_script("'" & aText & "'.downcase")
 end downcase
@@ -428,6 +430,15 @@ on look_up(src_list, a_key)
 	""
 end look_up
 
+on look_up_with_default(src_list, a_key, default)
+	if a_key = "" then return default
+	--if a_key is in {"", "\n", "\r", "\t"} then return ""
+	repeat with sub_list in src_list
+		if a_key is in sub_list's item 1 then return sub_list's items 2 thru -1
+	end repeat
+	default
+end look_up_with_default
+
 --max({3, 2, 5, 1, 4})
 on max(a_list)
 	a_list's item 1
@@ -499,15 +510,15 @@ on delete_item(a_list, n)
 end delete_item
 
 --リストから指定したアイテムを取り除く
---reject_item({"a", "b", "", "c"}, "") -- {"a", "b", "c"}
---reject_item({"a", "b", "", "c"}, {"", "b"}) -- {"a", "c"}
-on reject_item(a_list, condition_list)
+--reject_if({"a", "b", "", "c"}, "") -- {"a", "b", "c"}
+--reject_if({"a", "b", "", "c"}, {"", "b"}) -- {"a", "c"}
+on reject_if(a_list, condition_list)
 	set res to {}
 	repeat with a_item in a_list
 		if a_item's contents is not in condition_list then set res's end to a_item's contents
 	end repeat
 	res
-end reject_item
+end reject_if
 
 --先頭に追加してリストを返す
 (*
