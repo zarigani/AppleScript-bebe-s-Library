@@ -582,13 +582,10 @@ end ask_number
 --growlまたはdisplay dialogでメッセージを表示する。
 on message(title, msg)
 	try
-		--set msg to every_replace(msg, {"\n", "\r"}, {"\\" & return}) --改行をエスケープする-- \r == return
-		--		クォートした文字列は、改行コードを含んでも問題なく実行できる。
-		--		http://oshiete1.goo.ne.jp/kotaeru.php3?q=2347125
-		do shell script "/usr/local/bin/growlnotify " & title & " -m " & quoted form of truncate(msg, 350)
+		do shell script "/usr/local/bin/growlnotify " & title & " -m " & quoted form of msg
 	on error
 		activate
-		display alert msg giving up after 4
+		display alert msg giving up after 1
 	end try
 end message
 
@@ -596,12 +593,3 @@ end message
 on kana_han2zen(str)
 	every_replace(str, HAN_KANA, ZEN_KANA)
 end kana_han2zen
-
---文字列をnum文字までに切り詰める
-on truncate(str, num)
-	try
-		(str's items 1 thru num as text) & "......"
-	on error
-		str
-	end try
-end truncate
