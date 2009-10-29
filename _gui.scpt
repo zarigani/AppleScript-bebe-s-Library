@@ -10,11 +10,11 @@ GUIライブラリ
 		AppleScript 2.0.1
 		Script Editor 2.2.1 (100.1)
 *)
-property interval : 0.1
+property interval_second : 0.1
 
 --初期化処理（Quicksilverからの起動なら、ひと呼吸置いて実行する）
 on init()
-	set interval to 0.1
+	set interval_second to 0.1
 	if is_from_quicksilver() then
 		delay 0.3
 	end if
@@ -22,7 +22,7 @@ end init
 
 --ショートカットキーの操作間隔を秒で指定して、初期化処理する
 on init_with_interval(a_second)
-	set interval to a_second
+	set interval_second to a_second
 	if is_from_quicksilver() then
 		delay 0.3
 	end if
@@ -200,7 +200,7 @@ on press_key(app_name, normal_key, modifier_key)
 			if "AppleScript Runner" is in my every_process() or ¬
 				frontmost is false then
 				set frontmost to true
-				--delay interval
+				--delay interval_second
 			end if
 			
 			if my is_number(normal_key) then
@@ -208,7 +208,7 @@ on press_key(app_name, normal_key, modifier_key)
 			else
 				keystroke normal_key using modifier_key
 			end if
-			delay interval
+			delay interval_second
 		end tell
 	end tell
 end press_key
@@ -218,8 +218,12 @@ end press_key
 --Quicksilverから起動しているかどうか
 on is_from_quicksilver()
 	try
-		my name as text
-		false
+		set run_name to my name as text
+		if run_name is "Quicksilver" then
+			true
+		else
+			false
+		end if
 	on error
 		true
 	end try
