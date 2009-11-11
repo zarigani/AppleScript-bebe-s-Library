@@ -95,10 +95,10 @@ on click_menu(app_name, menu_path)
 			end if
 			
 			if mp's length = 1 then
-				menu bar 1's (menu bar item (my number_from(mp's item 1)))
+				click menu bar 1's (menu bar item (my number_from(mp's item 1)))
 			else
 				--menu bar 1's menu bar item (mp's item 1)'s menu (mp's item 1)
-				menu bar 1's (menu bar item (my number_from(mp's item 1)))'s menu 1
+				click menu bar 1's (menu bar item (my number_from(mp's item 1)))'s menu 1
 				repeat with i from 2 to mp's length
 					if i < mp's length then
 						--result's menu item (mp's item i)'s menu (mp's item i)
