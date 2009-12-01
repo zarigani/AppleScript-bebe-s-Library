@@ -56,7 +56,7 @@ end check
 --	click_menu("", "編集/検索/検索...") --OK
 --	click_menu("Script Editor", {"編集", "検索", "検索..."}) --OK
 --	click_menu("Script Editor", "編集", "検索", "検索...")--NG（リストでないので、編集をクリックする操作になってしまう）
---…または...の種類に注意
+--…（全角1文字）と...（.3文字）の種類に注意
 --	click_menu("Script Editor", "Apple/システム環境設定…") --全角記号1文字
 --	click_menu("Script Editor", "スクリプトエディタ/環境設定...") --半角ドット3文字
 --小さいカナ文字に注意（×ウィンドウ　○ウインドウ）
@@ -64,12 +64,12 @@ end check
 --	click_menu("", "Apple/この Mac について")
 --アイテム番号による指定も可能
 --アイテム番号では区切り線も1と数える
---アイテム番号とアイテム名称の混在可能
---	click_menu("Script Editor", "スクリプトエディタ/サービス/テキストエディット/選択部分を含む新しいウインドウを開く")
---	click_menu("Script Editor", "2/5/32/2") --=="スクリプトエディタ/サービス/テキストエディット/選択部分を含む新しいウインドウを開く"
---	click_menu("", "2/環境設定...") --"スクリプトエディタ/環境設定..."
---アイコンメニューは、メニューバーのアイテム番号の選択とキー操作で行う
---アイコンメニューのapp_nameは"SystemUIServer"
+--アイテム番号とアイテム名称の混在も可能
+--	click_menu("AppleScript Editor", "スクリプトエディタ/サービス/テキストエディット/選択部分を含む新しいウインドウを開く")
+--	click_menu("AppleScript Editor", "2/5/32/2") --=="スクリプトエディタ/サービス/テキストエディット/選択部分を含む新しいウインドウを開く"
+--	click_menu("AppleScript Editor", "2/環境設定...") --"スクリプトエディタ/環境設定..."
+--アイコンメニュー（メニューエスクトラ）は、メニューバーのアイテム番号の選択とキー操作で行う
+--アイコンメニュー（メニューエスクトラ）のapp_nameは"SystemUIServer"
 --"SystemUIServer"以外のアイコンメニューを操作する方法は、現状分からない...
 --例：ログインウィンドウを表示する（ログインユーザーが１人だけの場合）
 (*
@@ -82,34 +82,35 @@ on click_menu(app_name, menu_path)
 	if menu_path is "" then
 		error "menu_path が入力されていません。"
 	end if
+	
 	if app_name is "" then
 		set app_name to frontmost_app()
 	end if
+	
 	set mp to split(menu_path, "/")
 	
 	tell application "System Events"
 		tell process app_name
+			(*
 			if "AppleScript Runner" is in my every_process() or ¬
 				frontmost is false then
 				set frontmost to true
+				--delay interval_second
 			end if
+			*)
+			set frontmost to true
 			
-			if mp's length = 1 then
-				click menu bar 1's (menu bar item (my number_from(mp's item 1)))
-			else
-				--menu bar 1's menu bar item (mp's item 1)'s menu (mp's item 1)
-				click menu bar 1's (menu bar item (my number_from(mp's item 1)))'s menu 1
-				repeat with i from 2 to mp's length
-					if i < mp's length then
-						--result's menu item (mp's item i)'s menu (mp's item i)
-						result's (menu item (my number_from(mp's item i)))'s menu 1
-					else
-						result's (menu item (my number_from(mp's item i)))
-					end if
-				end repeat
-			end if
+			menu bar 1's menu bar item (my number_from(mp's item 1))
+			click result
+			result's menu 1
+			repeat with i from 2 to mp's length
+				try
+					result's (menu item (my number_from(mp's item i)))
+					click result
+					result's menu 1
+				end try
+			end repeat
 			
-			click result --click:クリックする／pick:選択する--ほぼ同等だが、アイコンメニューにはclickが必須
 			delay 0.1 --連続してメニューを操作する時、ひと呼吸必要
 		end tell
 	end tell
@@ -182,7 +183,7 @@ end shortcut
 --shortcut(app_name, key_text)の別名、エイリアス
 --tell application "System Events"ブロック内で、shortcutが予約語であることに気付いた為
 on app_shortcut(app_name, key_text)
-	shortcut(app_name, key_text)
+	my shortcut(app_name, key_text)
 end app_shortcut
 
 --キー操作を実行する
