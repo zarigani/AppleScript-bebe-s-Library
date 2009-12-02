@@ -64,19 +64,21 @@ end check
 --	click_menu("", "Apple/この Mac について")
 --アイテム番号による指定も可能
 --アイテム番号では区切り線も1と数える
+--サービスメニューのグループ名も1と数える
 --アイテム番号とアイテム名称の混在も可能
 --	click_menu("AppleScript Editor", "スクリプトエディタ/サービス/テキストエディット/選択部分を含む新しいウインドウを開く")
 --	click_menu("AppleScript Editor", "2/5/32/2") --=="スクリプトエディタ/サービス/テキストエディット/選択部分を含む新しいウインドウを開く"
 --	click_menu("AppleScript Editor", "2/環境設定...") --"スクリプトエディタ/環境設定..."
---アイコンメニュー（メニューエスクトラ）は、メニューバーのアイテム番号の選択とキー操作で行う
---アイコンメニュー（メニューエスクトラ）のapp_nameは"SystemUIServer"
+--アイコンメニュー（ステータスメニュー）の操作は、アイテム番号の選択とキー操作で行う
+--アイコンメニュー（ステータスメニュー）のアイテム番号は、control-F8でステータスメニューを選択して、左端から矢印キーで移動しながら数えると確認し易い
+--アイコンメニュー（ステータスメニュー）のapp_nameは、"SystemUIServer"
 --"SystemUIServer"以外のアイコンメニューを操作する方法は、現状分からない...
 --例：ログインウィンドウを表示する（ログインユーザーが１人だけの場合）
 (*
-		click_menu("SystemUIServer", "16")
-		shortcut("↓")
-		shortcut("↓")
-		shortcut("space")
+	click_menu("SystemUIServer", "13")
+	shortcut("↓")
+	shortcut("↓")
+	shortcut("space")
 *)
 on click_menu(app_name, menu_path)
 	if menu_path is "" then
@@ -91,24 +93,13 @@ on click_menu(app_name, menu_path)
 	
 	tell application "System Events"
 		tell process app_name
-			(*
-			if "AppleScript Runner" is in my every_process() or ¬
-				frontmost is false then
-				set frontmost to true
-				--delay interval_second
-			end if
-			*)
 			set frontmost to true
 			
 			menu bar 1's menu bar item (my number_from(mp's item 1))
 			click result
-			result's menu 1
 			repeat with i from 2 to mp's length
-				try
-					result's (menu item (my number_from(mp's item i)))
-					click result
-					result's menu 1
-				end try
+				result's menu 1's menu item (my number_from(mp's item i))
+				click result
 			end repeat
 			
 			delay 0.1 --連続してメニューを操作する時、ひと呼吸必要
