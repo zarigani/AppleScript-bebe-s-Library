@@ -94,18 +94,39 @@ on click_menu(app_name, menu_path)
 	tell application "System Events"
 		tell process app_name
 			set frontmost to true
+			click (menu bar 1's menu bar item (my number_from(mp's item 1)))
 			
-			menu bar 1's menu bar item (my number_from(mp's item 1))
-			click result
 			repeat with i from 2 to mp's length
-				result's menu 1's menu item (my number_from(mp's item i))
-				click result
+				click (result's menu 1's menu item (my number_from(mp's item i)))
 			end repeat
 			
 			delay 0.1 --連続してメニューを操作する時、ひと呼吸必要
 		end tell
 	end tell
 end click_menu
+
+--アイコンメニュー（ステータスメニュー）を通常のパスで指定できるようになった
+--click_menu_extra("AppleScript/Script Editor Scripts/About these scripts...")
+--click_menu_extra({"AppleScript", "Script Editor Scripts", "About these scripts..."})
+on click_menu_extra(menu_path)
+	if menu_path is "" then
+		error "menu_path が入力されていません。"
+	end if
+	set mp to split(menu_path, "/")
+	
+	tell application "System Events"
+		tell process "SystemUIServer"
+			set frontmost to true
+			click (menu bar 1's first menu bar item whose attribute "AXDescription"'s value is (mp's item 1))
+			
+			repeat with i from 2 to mp's length
+				click (result's menu 1's menu item (my number_from(mp's item i)))
+			end repeat
+			
+			delay 0.1 --連続してメニューを操作する時、ひと呼吸必要
+		end tell
+	end tell
+end click_menu_extra
 
 --shortcut(app_name, key_text)
 --キーボードショートカット操作をシンプルに実行する
